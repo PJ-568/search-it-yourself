@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=350px, initial-scale=1.0" />
+    <title>自己搜去</title>
+    <meta
+      name="description"
+      content="给不愿意或不会自己搜索的人类，快速生成教他们搜索页面的工具"
+    />
+    <meta name="repo" content="search-it-yourself" />
+    <meta name="author" content="wasteest, pj568" />
+    <meta name="license" content="cc by-sa 4.0" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔍%3C/text%3E%3C/svg%3E"
+    />
+    <style>
+      :root,
+      html {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        padding: 40px 20px;
+        font-family: Arial, sans-serif;
+        background-color: #e6e6e6;
+        color: #333333;
+      }
+
+      h1 {
+        text-align: center;
+        font-weight: bold;
+        color: #333333;
+      }
+
+      .search-container {
+        max-width: 600px;
+        margin: 20vh auto 0 auto;
+        text-align: center;
+      }
+
+      .search-form {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .search-input {
+        padding: 12px;
+        font-size: 16px;
+        border: none;
+        background: #f5f5f5;
+        width: 300px;
+      }
+
+      .search-button {
+        padding: 12px 24px;
+        font-size: 16px;
+        border: none;
+        background: #888;
+        color: white;
+        cursor: pointer;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .search-button:hover {
+        background: #555;
+      }
+
+      /* 深色模式支持 */
+      @media (prefers-color-scheme: dark) {
+        :root,
+        html,
+        body {
+          background-color: #212121;
+          color: #f1f1f1;
+        }
+
+        h1 {
+          color: #f1f1f1;
+        }
+
+        .search-input {
+          background: #333333;
+          color: #f1f1f1;
+          border: 1px solid #555555;
+        }
+
+        .search-button {
+          background: #4a90e2;
+          color: #f1f1f1;
+          border: 1px solid #357abd;
+        }
+
+        .search-button:hover {
+          background: #357abd;
+        }
+      }
+
+      /* 搜索结果样式 */
+      .search-result {
+        margin-top: 30px;
+        text-align: center;
+      }
+
+      .result-code-block {
+        display: inline-block;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 15px;
+        margin: 10px 0;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        max-width: 100%;
+        word-break: break-all;
+      }
+
+      .result-code-block:hover {
+        background: #e9ecef;
+        border-color: #adb5bd;
+      }
+
+      .result-code-block:active {
+        background: #dee2e6;
+        transform: scale(0.98);
+      }
+
+      .copy-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #1f512b;
+        color: white;
+        padding: 10px 20px;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+      }
+
+      .copy-notification.show {
+        opacity: 1;
+      }
+
+      /* 深色模式下的搜索结果样式 */
+      @media (prefers-color-scheme: dark) {
+        .result-code-block {
+          background: #2d3748;
+          border-color: #4a5568;
+          color: #e2e8f0;
+        }
+
+        .result-code-block:hover {
+          background: #4a5568;
+          border-color: #718096;
+        }
+
+        .result-code-block:active {
+          background: #718096;
+        }
+      }
+
+      /* 有序列表样式 */
+      .list-div {
+        display: none;
+        background: #12121211;
+        max-width: 600px;
+        margin: 40px auto 0;
+        padding: 1rem;
+        position: relative;
+
+        a {
+          text-decoration: underline;
+          cursor: pointer;
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+        }
+      }
+
+      .list-div li {
+        margin-bottom: 1rem;
+        color: inherit;
+      }
+
+      .list-div li:last-child {
+        margin-bottom: 0;
+      }
+
+      .list-div li p {
+        margin: 0;
+        padding: 0;
+      }
+
+      /* 深色模式下的有序列表样式 */
+      @media (prefers-color-scheme: dark) {
+        .list-div {
+          background: #e9ecef11;
+        }
+
+        .list-div li {
+          color: #f1f1f1;
+        }
+      }
+
+      .cursor {
+        color: #333333;
+        display: none;
+        top: -24px;
+        left: -24px;
+        position: fixed;
+        width: 24px;
+        height: 24px;
+        z-index: 1000;
+        pointer-events: none;
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        filter: drop-shadow(0 0 0.3rem white);
+      }
+
+      .cursor.visible {
+        display: block;
+      }
+
+      .cursor.click {
+        animation: clickPulse 0.3s ease-in-out;
+      }
+
+      @keyframes clickPulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.2);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* 输入框焦点状态下的光标 */
+      .search-input.focused {
+        box-shadow: 0 0 0 2px #007bff;
+      }
+
+      /* 按钮点击效果 */
+      .search-button.clicked {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+      }
+
+      /* 深色模式下的光标 */
+      @media (prefers-color-scheme: dark) {
+        .cursor {
+          color: #e9ecef;
+          filter: drop-shadow(0 0 0.3rem black);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="search-container">
+      <h1>自己搜去</h1>
+      <form class="search-form" id="searchForm" action="javascript:void(0);">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          name="q"
+          placeholder="请输入搜索内容"
+          autofocus
+        />
+        <button type="submit" class="search-button">
+          <!-- MIT Copyright (c) 2018-2025 Tabler -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-search"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+            <path d="M21 21l-6 -6" />
+          </svg>
+        </button>
+      </form>
+
+      <!-- 搜索结果显示区域 -->
+      <div class="search-result" id="searchResult" style="display: none">
+        <div class="result-code-block" id="resultLink" title="点击复制链接">
+          <!-- 搜索链接将在这里显示 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 复制成功提示 -->
+    <div class="copy-notification" id="copyNotification">
+      链接已复制到剪贴板！
+    </div>
+
+    <div class="list-div">
+      <ol>
+        <li>
+          <p>输入要搜索的内容；</p>
+        </li>
+        <li>
+          <p>点击搜索按钮；</p>
+        </li>
+        <li>
+          <p>将生成的链接复制到剪贴板，发给不愿意或不会自己搜索的人类。</p>
+        </li>
+      </ol>
+      <a
+        onclick="javascript:window.open('?q=Z2l0IHJlcG8gc2VhcmNoLWl0LXlvdXJzZWxmIHBqNTY4')"
+        >项目源码</a
+      >
+    </div>
+
+    <div class="cursor">
+      <!-- MIT Copyright (c) 2018-2025 Tabler -->
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="icon icon-tabler icons-tabler-outline icon-tabler-pointer"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path
+          d="M7.904 17.563a1.2 1.2 0 0 0 2.228 .308l2.09 -3.093l4.907 4.907a1.067 1.067 0 0 0 1.509 0l1.047 -1.047a1.067 1.067 0 0 0 0 -1.509l-4.907 -4.907l3.113 -2.09a1.2 1.2 0 0 0 -.309 -2.228l-13.582 -3.904l3.904 13.563z"
+        />
+      </svg>
+    </div>
+
+    <script>
+      // 语言检测和翻译功能
+      function detectLanguage() {
+        // 获取浏览器语言偏好
+        const browserLang =
+          navigator.language || navigator.userLanguage || "zh-CN";
+
+        // 检查是否为英语（包含 en 开头的语言代码）
+        const isEnglish = browserLang.startsWith("en");
+
+        // 翻译映射
+        const translations = {
+          title: "Search It Yourself",
+          mainTitle: "Search It Yourself",
+          inputPlaceholder: "Enter search content",
+          copyNotification: "Link copied to clipboard!",
+          emptyInputAlert: "Please enter search content",
+          instruction1: "Enter the content to search;",
+          instruction2: "Click the search button;",
+          instruction3:
+            "Copy the generated link to clipboard and send it to people who are unwilling or unable to search themselves.",
+          projectSource: "Project Source Code",
+        };
+
+        // 如果是英语，则进行翻译
+        if (isEnglish) {
+          // 翻译页面标题
+          document.title = translations.title;
+
+          // 翻译主标题
+          const mainTitle = document.querySelector("h1");
+          if (mainTitle) {
+            mainTitle.textContent = translations.mainTitle;
+          }
+
+          // 翻译输入框占位符
+          const searchInput = document.getElementById("searchInput");
+          if (searchInput) {
+            searchInput.placeholder = translations.inputPlaceholder;
+          }
+
+          // 翻译复制成功提示
+          const copyNotification = document.getElementById("copyNotification");
+          if (copyNotification) {
+            copyNotification.textContent = translations.copyNotification;
+          }
+
+          // 翻译使用说明
+          const listDiv = document.querySelector(".list-div");
+          if (listDiv) {
+            const instructions = listDiv.querySelectorAll("p");
+            if (instructions.length >= 3) {
+              instructions[0].textContent = translations.instruction1;
+              instructions[1].textContent = translations.instruction2;
+              instructions[2].textContent = translations.instruction3;
+            }
+
+            // 翻译项目源码链接
+            const projectSourceLink = listDiv.querySelector("a");
+            if (projectSourceLink) {
+              projectSourceLink.textContent = translations.projectSource;
+            }
+          }
+        }
+
+        return isEnglish;
+      }
+
+      // 初始化时执行语言检测
+      document.addEventListener("DOMContentLoaded", function () {
+        detectLanguage();
+      });
+
+      // 获取页面元素
+      const searchForm = document.getElementById("searchForm");
+      const searchInput = document.getElementById("searchInput");
+      const searchResult = document.getElementById("searchResult");
+      const resultLink = document.getElementById("resultLink");
+      const copyNotification = document.getElementById("copyNotification");
+      const listDiv = document.querySelector(".list-div");
+      const cursor = document.querySelector(".cursor");
+      const searchButton = document.querySelector(".search-button");
+
+      // 光标动画函数
+      function moveCursorTo(element, callback, x = 0, y = 0) {
+        const rect = element.getBoundingClientRect();
+        const cursorRect = cursor.getBoundingClientRect();
+
+        // 计算光标应该移动到的位置（元素中心）
+        const targetX = rect.left + rect.width / 2 - cursorRect.width / 2 + x;
+        const targetY = rect.top + rect.height / 2 - cursorRect.height / 2 + y;
+
+        cursor.style.left = targetX + "px";
+        cursor.style.top = targetY + "px";
+
+        setTimeout(callback, 1000); // 等待移动动画完成
+      }
+
+      // 点击光标动画
+      function clickCursor(callback) {
+        cursor.classList.add("click");
+        setTimeout(() => {
+          cursor.classList.remove("click");
+          if (callback) callback();
+        }, 400);
+      }
+
+      // 逐字输入动画
+      function typeText(text, callback) {
+        let index = 0;
+        searchInput.value = "";
+
+        function typeNextChar() {
+          if (index < text.length) {
+            searchInput.value += text[index];
+            searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+            index++;
+            setTimeout(typeNextChar, 100); // 每个字符间隔 100ms
+          } else {
+            if (callback) callback();
+          }
+        }
+
+        typeNextChar();
+      }
+
+      // 动画序列控制器
+      function runAnimationSequence(queryValue) {
+        // 显示光标
+        cursor.classList.add("visible");
+
+        // 步骤 1: 光标从右上角移动到搜索框
+        setTimeout(() => {
+          moveCursorTo(
+            searchInput,
+            () => {
+              // 步骤 2: 点击搜索框
+              clickCursor(() => {
+                searchInput.classList.add("focused");
+
+                // 等待焦点效果，然后开始输入
+                setTimeout(() => {
+                  // 步骤 3: 逐字输入查询内容
+                  typeText(decodeURIComponent(queryValue), () => {
+                    // 等待输入完成
+                    setTimeout(() => {
+                      // 步骤 4: 光标移动到搜索按钮
+                      moveCursorTo(
+                        searchButton,
+                        () => {
+                          // 步骤 5: 点击搜索按钮
+                          clickCursor(() => {
+                            searchButton.classList.add("clicked");
+
+                            // 等待点击效果，然后跳转
+                            setTimeout(() => {
+                              // 步骤 6: 跳转到bing搜索
+                              window.location.href = `https://bing.com/search?q=${queryValue}`;
+                            }, 200);
+                          });
+                        },
+                        searchButton.offsetWidth * 0.3,
+                        searchButton.offsetHeight * 0.3
+                      );
+                    }, 100);
+                  });
+                }, 300);
+              });
+            },
+            searchInput.offsetWidth * 0.4,
+            searchInput.offsetHeight * 0.3
+          );
+        }, 1000); // 1 秒后开始动画
+      }
+
+      // 页面初始化时检查参数 q 的值
+      function initializePage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let encodedQueryValue = urlParams.get("q");
+
+        // 对获取到的编码值进行 Base64 解码
+        let queryValue = "";
+        if (encodedQueryValue) {
+          try {
+            queryValue = decodeURIComponent(escape(atob(encodedQueryValue)));
+          } catch (error) {
+            // 如果解码失败，使用原始值（兼容旧链接）
+            queryValue = encodedQueryValue;
+          }
+        }
+
+        // 如果 q 参数无或空，显示 .list-div
+        if (!queryValue || queryValue.trim() === "") {
+          listDiv.style.display = "block";
+        } else {
+          // 隐藏默认光标
+          const style = document.createElement("style");
+          style.textContent = "*,html,:root { cursor: none !important; }";
+          document.head.appendChild(style);
+
+          // 阻止所有鼠标事件和键盘事件
+          document.addEventListener(
+            "click",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+
+          document.addEventListener(
+            "mousedown",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+
+          document.addEventListener(
+            "mouseup",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+
+          document.addEventListener(
+            "mousemove",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+
+          document.addEventListener(
+            "keydown",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+
+          document.addEventListener(
+            "keyup",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+
+          document.addEventListener(
+            "keypress",
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+
+          // 开始动画序列
+          runAnimationSequence(queryValue);
+        }
+      }
+      initializePage();
+
+      // 监听表单提交事件
+      searchForm.addEventListener("submit", function (event) {
+        event.preventDefault(); // 阻止表单默认提交行为
+
+        const searchValue = searchInput.value.trim();
+
+        // 检查输入框是否为空
+        if (!searchValue) {
+          alert(isEnglish ? "Please enter search content" : "请输入搜索内容");
+          return;
+        }
+
+        // 生成搜索链接，对搜索值进行 Base64 编码混淆
+        const currentUrl = window.location.href.split("?")[0]; // 获取当前页面路径，去除查询参数
+        const obfuscatedValue = btoa(unescape(encodeURIComponent(searchValue)));
+        const searchLink = `${currentUrl}?q=${encodeURIComponent(
+          obfuscatedValue
+        )}`;
+
+        // 在代码块中显示链接
+        resultLink.textContent = searchLink;
+        searchResult.style.display = "block";
+
+        // 滚动到结果区域
+        searchResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+
+      // 监听结果链接点击事件，实现复制功能
+      resultLink.addEventListener("click", async function () {
+        const linkText = resultLink.textContent;
+
+        try {
+          // 使用现代剪贴板 API
+          await navigator.clipboard.writeText(linkText);
+
+          // 显示复制成功提示
+          copyNotification.classList.add("show");
+
+          // 3 秒后隐藏提示
+          setTimeout(() => {
+            copyNotification.classList.remove("show");
+          }, 3000);
+        } catch (err) {
+          // 兼容旧版浏览器的备用方案
+          console.warn("现代剪贴板 API 不可用，使用备用方案");
+
+          // 创建临时文本区域
+          const textArea = document.createElement("textarea");
+          textArea.value = linkText;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+
+          try {
+            document.execCommand("copy");
+
+            // 显示复制成功提示
+            copyNotification.classList.add("show");
+
+            // 3 秒后隐藏提示
+            setTimeout(() => {
+              copyNotification.classList.remove("show");
+            }, 3000);
+          } catch (err) {
+            alert("复制失败，请手动复制链接：" + linkText);
+          }
+
+          // 清理临时元素
+          document.body.removeChild(textArea);
+        }
+      });
+
+      // 监听输入框回车键事件，确保在按下回车键时触发表单提交
+      searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault(); // 阻止输入框的默认回车行为
+          searchForm.dispatchEvent(new Event("submit"));
+        }
+      });
+
+      // 输入框获得焦点时隐藏之前的结果
+      searchInput.addEventListener("focus", function () {
+        searchResult.style.display = "none";
+      });
+    </script>
+  </body>
+</html>
