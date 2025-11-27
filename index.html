@@ -493,6 +493,7 @@
               // 步骤 2: 点击搜索框
               clickCursor(() => {
                 searchInput.classList.add("focused");
+                searchInput.focus();
 
                 // 等待焦点效果，然后开始输入
                 setTimeout(() => {
