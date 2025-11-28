@@ -512,7 +512,6 @@
                             // 等待点击效果，然后跳转
                             setTimeout(() => {
                               // 步骤 6: 跳转到bing搜索
-                              // 修复：对查询值进行 URL 编码，确保特殊字符（如 %20）正确传递
                               window.location.href = `https://bing.com/search?q=${encodeURIComponent(queryValue)}`;
                             }, 200);
                           });
