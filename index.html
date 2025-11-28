@@ -498,7 +498,7 @@
                 // 等待焦点效果，然后开始输入
                 setTimeout(() => {
                   // 步骤 3: 逐字输入查询内容
-                  typeText(decodeURIComponent(queryValue), () => {
+                  typeText(queryValue, () => {
                     // 等待输入完成
                     setTimeout(() => {
                       // 步骤 4: 光标移动到搜索按钮
@@ -512,7 +512,7 @@
                             // 等待点击效果，然后跳转
                             setTimeout(() => {
                               // 步骤 6: 跳转到bing搜索
-                              window.location.href = `https://bing.com/search?q=${queryValue}`;
+                              window.location.href = `https://bing.com/search?q=${encodeURIComponent(queryValue)}`;
                             }, 200);
                           });
                         },
