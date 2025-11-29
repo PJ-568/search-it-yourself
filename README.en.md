@@ -11,10 +11,11 @@ Compared to a complaint, "Search It Yourself" is more like a vow spoken to onese
 ## Usage
 
 1. Visit `index.html`;
-2. Enter search content;
-3. Click the search button;
-4. Copy the generated link;
-5. Send the link to humans who are unwilling or unable to search themselves.
+2. (Optional) Enter custom search engine, format as `https://example.com/search?q=QUERY`;
+3. Enter search content;
+4. Click the search button;
+5. Copy the generated link;
+6. Send the link to humans who are unwilling or unable to search themselves.
 
 ## License
 
