@@ -546,8 +546,7 @@
                             }, 200);
                           });
                         },
-                        searchButton.offsetWidth * 0.3,
-                        searchButton.offsetHeight * 0.3
+                        searchButton.offsetWidth * 0.3
                       );
                     }, 100);
                   });
@@ -558,6 +557,29 @@
             searchInput.offsetHeight * 0.3
           );
         }, 1000); // 1 秒后开始动画
+      }
+
+      function preventAllEvents() {
+        const events = [
+          "click",
+          "mousedown",
+          "mouseup",
+          "mousemove",
+          "keydown",
+          "keyup",
+          "keypress",
+        ];
+        events.forEach((eventType) => {
+          document.addEventListener(
+            eventType,
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            },
+            true
+          );
+        });
       }
 
       // 页面初始化时检查参数 q 的值
@@ -613,75 +635,7 @@
           document.head.appendChild(style);
 
           // 阻止所有鼠标事件和键盘事件
-          document.addEventListener(
-            "click",
-            function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-            },
-            true
-          );
-
-          document.addEventListener(
-            "mousedown",
-            function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-            },
-            true
-          );
-
-          document.addEventListener(
-            "mouseup",
-            function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-            },
-            true
-          );
-
-          document.addEventListener(
-            "mousemove",
-            function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-            },
-            true
-          );
-
-          document.addEventListener(
-            "keydown",
-            function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-            },
-            true
-          );
-
-          document.addEventListener(
-            "keyup",
-            function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-            },
-            true
-          );
-
-          document.addEventListener(
-            "keypress",
-            function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-            },
-            true
-          );
+          preventAllEvents();
 
           // 开始动画序列
           runAnimationSequence(queryValue, searchEngineValue);
